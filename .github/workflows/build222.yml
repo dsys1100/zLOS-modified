@@ -1,4 +1,4 @@
-name: Build Kernel
+name: Build Kernel (LOS 22.2)
 
 on:
   workflow_dispatch: {}
@@ -23,17 +23,17 @@ jobs:
 
       - name: Download Sources
         run: |
-          git clone https://github.com/dsys1100/zLOS-modified temp -b lineage-20.0 --depth 1
+          git clone https://github.com/dsys1100/zLOS-modified temp -b lineage-22.2 --depth 1
           mv temp/* . && rm -rf temp
 
       - name: Set Environment
         run: |
           echo "BUILD_TIME=$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV
 
-      - name: Download Clang r450784d
+      - name: Download Clang
         run: |
           mkdir tc && wget -qO- \
-          https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz \
+          https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android15-release/clang-r522817.tar.gz \
           | tar -xz -C tc
 
       - name: Setup KernelSU-Next
@@ -44,7 +44,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          rm localversion
+          rm localversion || true
           export PATH=$PWD/tc/bin:$PATH
           export ARCH=arm64
           export KBUILD_BUILD_USER="dsys1100"
@@ -104,7 +104,7 @@ jobs:
             cp out/arch/arm64/boot/dtbo.img AnyKernel3/
           fi
           cd AnyKernel3
-          ZIP_NAME="zLOS-modified-mido-${BUILD_TIME}.zip"
+          ZIP_NAME="222-zLOS-modified-mido-${BUILD_TIME}.zip"
           zip -r9 "$ZIP_NAME" . -x "*.git*" -x "*.zip"
           cd .. && mv AnyKernel3/"$ZIP_NAME" "$ZIP_NAME"
           echo "FINAL_ZIP=$PWD/$ZIP_NAME" >> $GITHUB_ENV
@@ -112,6 +112,7 @@ jobs:
       - name: Create Release Info
         run: |
           echo "WindKernel-Modified" > release_body.txt
+          echo "LineageOS version: 22.2, Tested with android 15" >> release_body.txt
           echo "" >> release_body.txt
           echo "Credits:" >> release_body.txt
           echo "Kernel [sources](https://github.com/zeelog/android_kernel_xiaomi_mido) and [author](https://github.com/zeelog/)" >> release_body.txt
